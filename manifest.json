@@ -1,6 +1,6 @@
 {
-  "name": "Hello World PWA",
-  "short_name": "HelloPWA",
+  "name": "Invest Cockpit",
+  "short_name": "Invest Cockpit",
   "start_url": "/PWA-Sheets/index.html",
   "display": "fullscreen",
   "background_color": "#ffffff",
