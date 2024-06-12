@@ -9,7 +9,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
         .then(response => response.json())
         .then(data => {
             const cellData = data.values[0][0];
-            document.getElementById('sheet-data').innerText = cellData;
+            //document.getElementById('sheet-data').innerText = cellData;
         })
         .catch(error => console.error('Error fetching data:', error));
 });
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    const chartUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTV4t110oAudnXg52BqPnQP3suHaDDBwXw58M6uBPNhSPaUdGH2eW-J8LRpagYl2tDi4KiTwoVnZRkK/pubchart?oid=1862197747&format=interactive';
+    document.getElementById('sheets-chart').src = chartUrl;
+});
+
