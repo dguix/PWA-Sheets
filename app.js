@@ -19,9 +19,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('sheets-chart').src = chartUrl;
 });*/
 
-/////////////////////////////////
-
-
 let tokenClient;
 let gapiInited = false;
 let gisInited = false;
@@ -30,8 +27,6 @@ const CLIENT_ID = '1072569223134-1gu67qgp0atsdvdj3h3ktlksokov41g4.apps.googleuse
 const API_KEY = 'AIzaSyBwppxHvm1B6k7pLQOdJJRdCNW5Zr8rHw0';
 const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
 const SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
-
-document.getElementById('signout_button').onclick = handleSignoutClick;
 
 function gapiLoaded() {
     gapi.load('client', initializeGapiClient);
@@ -58,17 +53,26 @@ function gisLoaded() {
 
 function maybeEnableButtons() {
     if (gapiInited && gisInited) {
-        document.querySelector('.g_id_signin').style.display = 'none';
-        document.getElementById('signout_button').style.display = 'block';
-        tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) {
-                throw (resp);
-            }
-            await listMajors();
-        };
-
-        tokenClient.requestAccessToken({prompt: 'consent'});
+        document.querySelector('.g_id_signin').style.display = 'block';
+        document.getElementById('signout_button').style.display = 'none';
+        document.getElementById('signout_button').onclick = handleSignoutClick;
     }
+}
+
+function handleCredentialResponse(response) {
+    const id_token = response.credential;
+    gapi.auth.setToken({
+        'access_token': id_token
+    });
+
+    tokenClient.callback = async (resp) => {
+        if (resp.error !== undefined) {
+            throw (resp);
+        }
+        await listMajors();
+    };
+
+    tokenClient.requestAccessToken({prompt: ''});
 }
 
 async function listMajors() {
@@ -116,13 +120,11 @@ async function listMajors() {
 }
 
 function handleSignoutClick() {
-    const tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: '', // defined later
-    });
-    tokenClient.revoke(tokenClient.getAccessToken(), () => {
+    google.accounts.oauth2.revoke(tokenClient.getToken().access_token, () => {
         console.log('Access token revoked');
+        document.querySelector('.g_id_signin').style.display = 'block';
+        document.getElementById('signout_button').style.display = 'none';
+        document.getElementById('chart-container').innerHTML = '';
     });
 }
 
@@ -130,4 +132,3 @@ window.onload = function() {
     gapiLoaded();
     gisLoaded();
 };
-
