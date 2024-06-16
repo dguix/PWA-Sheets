@@ -19,60 +19,64 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('sheets-chart').src = chartUrl;
 });*/
 
+/////////////////////////////////
 
+
+let tokenClient;
+let gapiInited = false;
+let gisInited = false;
 
 const CLIENT_ID = '1072569223134-1gu67qgp0atsdvdj3h3ktlksokov41g4.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyBwppxHvm1B6k7pLQOdJJRdCNW5Zr8rHw0';
 const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
 const SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
 
-let authorizeButton = document.getElementById('authorize_button');
-let signoutButton = document.getElementById('signout_button');
+document.getElementById('signout_button').onclick = handleSignoutClick;
 
-function handleClientLoad() {
-    gapi.load('client:auth2', initClient);
+function gapiLoaded() {
+    gapi.load('client', initializeGapiClient);
 }
 
-function initClient() {
-    gapi.client.init({
+async function initializeGapiClient() {
+    await gapi.client.init({
         apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        discoveryDocs: DISCOVERY_DOCS,
-        scope: SCOPES
-    }).then(() => {
-        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-        authorizeButton.onclick = handleAuthClick;
-        signoutButton.onclick = handleSignoutClick;
-    }, error => {
-        console.error(JSON.stringify(error, null, 2));
+        discoveryDocs: [DISCOVERY_DOC],
     });
+    gapiInited = true;
+    maybeEnableButtons();
 }
 
-function updateSigninStatus(isSignedIn) {
-    if (isSignedIn) {
-        authorizeButton.style.display = 'none';
-        signoutButton.style.display = 'block';
-        listMajors();
-    } else {
-        authorizeButton.style.display = 'block';
-        signoutButton.style.display = 'none';
+function gisLoaded() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: '', // defined later
+    });
+    gisInited = true;
+    maybeEnableButtons();
+}
+
+function maybeEnableButtons() {
+    if (gapiInited && gisInited) {
+        document.querySelector('.g_id_signin').style.display = 'none';
+        document.getElementById('signout_button').style.display = 'block';
+        tokenClient.callback = async (resp) => {
+            if (resp.error !== undefined) {
+                throw (resp);
+            }
+            await listMajors();
+        };
+
+        tokenClient.requestAccessToken({prompt: 'consent'});
     }
 }
 
-function handleAuthClick(event) {
-    gapi.auth2.getAuthInstance().signIn();
-}
-
-function handleSignoutClick(event) {
-    gapi.auth2.getAuthInstance().signOut();
-}
-
-function listMajors() {
-    gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: '1JjeT5685o9gbJY9xz7b8sNDQugVe0psYqMcd6kCSHbc',
-        range: 'Synthèse et indicateur!A3',
-    }).then(response => {
+async function listMajors() {
+    try {
+        const response = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: '1JjeT5685o9gbJY9xz7b8sNDQugVe0psYqMcd6kCSHbc',
+            range: 'Synthèse et indicateur!A3',
+        });
         const range = response.result;
         if (range.values.length > 0) {
             const labels = [];
@@ -82,7 +86,9 @@ function listMajors() {
                 values.push(row[1]);
             });
 
-            const ctx = document.getElementById('myChart').getContext('2d');
+            const ctx = document.createElement('canvas');
+            document.getElementById('chart-container').appendChild(ctx);
+
             const myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -104,9 +110,24 @@ function listMajors() {
                 }
             });
         }
-    }, error => {
-        console.error('Error fetching data: ', error);
+    } catch (err) {
+        console.error('Error fetching data: ', err);
+    }
+}
+
+function handleSignoutClick() {
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: '', // defined later
+    });
+    tokenClient.revoke(tokenClient.getAccessToken(), () => {
+        console.log('Access token revoked');
     });
 }
 
-document.addEventListener('DOMContentLoaded', handleClientLoad);
+window.onload = function() {
+    gapiLoaded();
+    gisLoaded();
+};
+

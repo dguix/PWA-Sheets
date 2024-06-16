@@ -6,15 +6,29 @@
     <title>Google Sheets Chart PWA</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
     <h1>Google Sheets Chart</h1>
-    <button id="authorize_button" style="display: none;">Authorize</button>
+    <div id="g_id_onload"
+         data-client_id="YOUR_CLIENT_ID"
+         data-login_uri="http://localhost:8000"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
     <button id="signout_button" style="display: none;">Sign Out</button>
     <div id="chart-container"></div>
     <div id="sheet-data"></div>
     <img id="sheets-chart" alt="Graph">
+    <script src="app.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
