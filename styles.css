@@ -3,3 +3,9 @@ body {
     text-align: center;
     margin-top: 50px;
 }
+
+#chart-container {
+    width: 100%;
+    max-width: 800px;
+    margin: auto;
+}

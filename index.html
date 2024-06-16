@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Sheets PWA</title>
+    <title>Google Sheets Chart PWA</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
+    <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
-    <h1>Google Sheets Data</h1>
+    <h1>Google Sheets Chart</h1>
+    <button id="authorize_button" style="display: none;">Authorize</button>
+    <button id="signout_button" style="display: none;">Sign Out</button>
+    <div id="chart-container"></div>
     <div id="sheet-data"></div>
     <img id="sheets-chart" alt="Graph">
     <script src="app.js"></script>
